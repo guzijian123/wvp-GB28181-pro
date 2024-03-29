@@ -1,6 +1,6 @@
 <template>
   <div ref="container" @dblclick="fullscreenSwich"
-       style="width:100%; height: 100%; background-color: #000000;margin:0 auto;position: relative;">
+    style="width:100%; height: 100%; background-color: #000000;margin:0 auto;position: relative;">
     <div class="buttons-box" id="buttonsBox">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick"></i>
@@ -14,7 +14,7 @@
         <!--          <i class="iconfont icon-file-record1 jessibuca-btn"></i>-->
         <!--          <i class="iconfont icon-xiangqing2 jessibuca-btn" ></i>-->
         <i class="iconfont icon-camera1196054easyiconnet jessibuca-btn" @click="screenshot"
-           style="font-size: 1rem !important"></i>
+          style="font-size: 1rem !important"></i>
         <i class="iconfont icon-shuaxin11 jessibuca-btn" @click="playBtnClick"></i>
         <i v-if="!fullscreen" class="iconfont icon-weibiaoti10 jessibuca-btn" @click="fullscreenSwich"></i>
         <i v-if="fullscreen" class="iconfont icon-weibiaoti11 jessibuca-btn" @click="fullscreenSwich"></i>
@@ -24,6 +24,9 @@
 </template>
 
 <script>
+import watermark from '../../../utils/waterMark.js';
+import userService from '../service/UserService';
+
 let jessibucaPlayer = {};
 export default {
   name: 'jessibuca',
@@ -43,6 +46,11 @@ export default {
       rotate: 0,
       vod: true, // 点播
       forceNoOffscreen: false,
+      watermarkTimer: null,
+      config: {
+        userName: userService.getUser().username,
+        nowTime: "2024-03-01 12:00:00"
+      } // 水印
     };
   },
   props: ['videoUrl', 'error', 'hasAudio', 'height'],
@@ -56,6 +64,7 @@ export default {
         this.videoUrl = paramUrl;
       }
       this.btnDom = document.getElementById("buttonsBox");
+      this.watermarkTimer = watermark(this.$refs.container, this.config);
     })
   },
   // mounted() {
@@ -140,7 +149,7 @@ export default {
         wcsUseVideoRender: true
       };
       console.log("Jessibuca -> options: ", options);
-      jessibucaPlayer[this._uid] = new window.Jessibuca({...options});
+      jessibucaPlayer[this._uid] = new window.Jessibuca({ ...options });
 
       let jessibuca = jessibucaPlayer[this._uid];
       let _this = this;
@@ -267,6 +276,7 @@ export default {
     this.playing = false;
     this.loaded = false;
     this.performance = "";
+    clearInterval(this.watermarkTimer);
   },
 }
 </script>
