@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
+import com.genersoft.iot.vmp.gb28181.task.impl.AlarmSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
@@ -532,6 +533,23 @@ public class DeviceServiceImpl implements IDeviceService {
         if (!ObjectUtils.isEmpty(device.getStreamMode())) {
             deviceInStore.setStreamMode(device.getStreamMode());
         }
+        // 事件订阅相关的信息
+        if (deviceInStore.getSubscribeCycleForAlarm() != device.getSubscribeCycleForAlarm()) {
+            if (device.getSubscribeCycleForAlarm() > 0) {
+                // 若已开启订阅，但订阅周期不同，则先取消
+                if (deviceInStore.getSubscribeCycleForAlarm() != 0) {
+                    removeAlarmDirectorySubscription(deviceInStore);
+                }
+                // 开启订阅
+                deviceInStore.setSubscribeCycleForAlarm(device.getSubscribeCycleForAlarm());
+                addAlarmDirectorySubscribe(deviceInStore);
+            } else if (device.getSubscribeCycleForAlarm() == 0) {
+                // 取消订阅
+                deviceInStore.setSubscribeCycleForAlarm(device.getSubscribeCycleForAlarm());
+                removeAlarmDirectorySubscription(deviceInStore);
+            }
+        }
+
         //  目录订阅相关的信息
         if (deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
             if (device.getSubscribeCycleForCatalog() > 0) {
@@ -635,6 +653,40 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public List<Device> getAll() {
         return deviceMapper.getAll();
+    }
+
+    @Override
+    public boolean addAlarmDirectorySubscribe(Device device) {
+        if (device == null || device.getSubscribeCycleForAlarm() < 0) {
+            return false;
+        }
+        logger.info("[添加事件订阅] 设备{}", device.getDeviceId());
+        // 添加目录订阅
+        AlarmSubscribeTask alarmSubscribeTask = new AlarmSubscribeTask(device, sipCommander, dynamicTask);
+        // 刷新订阅
+        int subscribeCycleForAlarm = Math.max(device.getSubscribeCycleForAlarm(), 30);
+        // 设置最小值为30
+        dynamicTask.startCron(device.getDeviceId() + "alarm", alarmSubscribeTask, (subscribeCycleForAlarm - 1) * 1000);
+        return true;
+    }
+
+
+    @Override
+    public boolean removeAlarmDirectorySubscription(Device device) {
+        if (device == null || device.getSubscribeCycleForAlarm() < 0) {
+            return false;
+        }
+        logger.info("[移除事件订阅]: {}", device.getDeviceId());
+        String taskKey = device.getDeviceId() + "alarm";
+        if (device.isOnLine()) {
+            Runnable runnable = dynamicTask.get(taskKey);
+            if (runnable instanceof ISubscribeTask) {
+                ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
+                subscribeTask.stop(null);
+            }
+        }
+        dynamicTask.stop(taskKey);
+        return true;
     }
 
 

@@ -222,16 +222,16 @@ public class ZLMHttpHookListener {
                     logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
                     return new HookResultForOnPublish(401, "Unauthorized");
                 }
-                // 推流自定义播放鉴权码
-                String callId = paramMap.get("callId");
                 // 鉴权配置
-                boolean hasAuthority = userService.checkPushAuthority(callId, sign);
+                // 推流自定义播放鉴权码
+                // 鉴权配置
+                boolean hasAuthority = userService.checkPushAuthority(null, sign);
                 if (!hasAuthority) {
-                    logger.info("推流鉴权失败： sign 无权限: callId={}. sign={}", callId, sign);
+                    logger.info("推流鉴权失败： sign 无权限: sign={}", sign);
                     return new HookResultForOnPublish(401, "Unauthorized");
                 }
                 StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
-                streamAuthorityInfo.setCallId(callId);
+                streamAuthorityInfo.setCallId(sign);
                 streamAuthorityInfo.setSign(sign);
                 // 鉴权通过
                 redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);

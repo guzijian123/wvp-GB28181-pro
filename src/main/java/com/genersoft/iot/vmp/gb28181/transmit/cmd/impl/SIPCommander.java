@@ -1279,7 +1279,7 @@ public class SIPCommander implements ISIPCommander {
      * @return true = 命令发送成功
      */
     @Override
-    public void alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String startTime, String endTime) throws InvalidArgumentException, SipException, ParseException {
+    public SIPRequest alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String startTime, String endTime) throws InvalidArgumentException, SipException, ParseException {
 
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
@@ -1307,9 +1307,9 @@ public class SIPCommander implements ISIPCommander {
 
 
 
-        Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), null, expires, "presence",sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
+        SIPRequest request = (SIPRequest)headerProvider.createSubscribeRequest(device, cmdXml.toString(), null, expires, "presence",sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request);
-
+        return request;
     }
 
     @Override

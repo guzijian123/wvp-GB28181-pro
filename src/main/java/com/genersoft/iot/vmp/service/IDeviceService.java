@@ -169,4 +169,7 @@ public interface IDeviceService {
      * 获取所有设备
      */
     List<Device> getAll();
+
+    boolean addAlarmDirectorySubscribe(Device device);
+    boolean removeAlarmDirectorySubscription(Device device);
 }
