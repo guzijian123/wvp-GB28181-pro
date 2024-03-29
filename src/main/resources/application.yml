@@ -3,3 +3,5 @@ spring:
     name: wvp
   profiles:
     active: local
+server:
+  port: 18080

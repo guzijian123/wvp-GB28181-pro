@@ -18,7 +18,7 @@ public class WVPTimerTask {
     private IMediaServerService mediaServerService;
 
     @Value("${server.port}")
-    private int serverPort;
+    private Integer serverPort;
 
     @Autowired
     private SipConfig sipConfig;

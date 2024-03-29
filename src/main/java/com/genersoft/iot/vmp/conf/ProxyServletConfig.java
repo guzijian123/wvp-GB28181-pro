@@ -36,7 +36,7 @@ public class ProxyServletConfig {
     private IMediaServerService mediaServerService;
 
     @Value("${server.port}")
-    private int serverPort;
+    private Integer serverPort;
 
     @Bean
     public ServletRegistrationBean zlmServletRegistrationBean(){

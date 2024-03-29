@@ -69,7 +69,7 @@ public class ServerController {
 
 
     @Value("${server.port}")
-    private int serverPort;
+    private Integer serverPort;
 
 
     @Autowired
