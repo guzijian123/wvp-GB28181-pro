@@ -62,7 +62,7 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public boolean checkPushAuthority(String callId, String sign) {
-
+        sign = sign != null ?  sign.replaceFirst("/","") : null;
         List<User> users = userMapper.getUsers();
         if (users.size() == 0)  {
             return false;
@@ -72,8 +72,8 @@ public class UserServiceImpl implements IUserService {
                 continue;
             }
             String checkStr = callId == null? user.getPushKey():(callId + "_" + user.getPushKey())  ;
-            String checkSign = DigestUtils.md5DigestAsHex(checkStr.getBytes());
-            if (checkSign.equals(sign)) {
+//            String checkSign = DigestUtils.md5DigestAsHex(checkStr.getBytes());
+            if (checkStr.equals(sign)) {
                 return true;
             }
         }
